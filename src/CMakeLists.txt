@@ -2,6 +2,7 @@ set(UTILS ${CMAKE_CURRENT_SOURCE_DIR}/utils)
 
 add_library(bionautlabs-libs
   ${UTILS}/simUtils.cpp
+  ${UTILS}/controlUtils.cpp
 )
 
 target_include_directories(bionautlabs-libs PUBLIC
