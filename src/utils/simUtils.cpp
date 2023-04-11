@@ -1,7 +1,5 @@
 #include "utils/simUtils.h"
 
-#include <iostream>
-
 namespace sim {
 
 void Sim::updateStates(const Eigen::Vector<double, 3>& controlAccel)
