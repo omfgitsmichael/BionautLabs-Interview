@@ -2,6 +2,7 @@
 #include <chrono>
 #include <thread>
 #include <cmath>
+#include <tuple>
 
 #include "utils/simUtils.h"
 #include "utils/pathUtils.h"
@@ -9,6 +10,17 @@
 
 using namespace std::this_thread;     /// sleep_for, sleep_until
 using namespace std::chrono_literals; /// ns, us, ms, s, h, etc.
+
+std::tuple<bool, double> checkSafety(const Eigen::Vector<double, 3>& vehiclePos,
+                                     const Eigen::Vector<double, 3>& path,
+                                     double safetyRadius,
+                                     double vehicleRadius)
+{
+    const double error = (vehiclePos - path).norm();
+    const bool result = safetyRadius > error + vehicleRadius;
+
+    return std::make_tuple(result, error);
+}
 
 // Sim Parameters
 constexpr double tInit = 0.0;
@@ -36,10 +48,10 @@ int main() {
     Eigen::Vector<double, 3> orientation{roll, pitch, yaw};
 
     // Bot params
-    double length = 0.005;
+    double length = 0.005; /// Assuming bot is sphere with length L for now
 
     // Safety Radius
-    double R = 1.0; /// for the time being
+    double R = 0.01;
 
     // Create controllers
     control::Controller controllerX;
@@ -63,6 +75,10 @@ int main() {
     // Control acceleration vector
     Eigen::Vector<double, 3> controlAccel{0.0, 0.0, 0.0};
 
+    // Misc variables
+    Eigen::Vector<double, 3> vehiclePos = pos;
+    Eigen::Vector<double, 3> vehiclePosPrev = pos;
+
     sim::Sim sim(dt, pos, vel, accel);
 
     for (int i = 0; i < simSteps; i++) {
@@ -76,6 +92,16 @@ int main() {
         Eigen::Vector<double, 3> yMeas{posMeas(1), velMeas(1), accMeas(1)};
         Eigen::Vector<double, 3> zMeas{posMeas(2), velMeas(2), accMeas(2)};
 
+        // Check safety criteria
+        bool isSafe = false;
+        double deviationDistance = 0.0;
+        std::tie(isSafe, deviationDistance) = checkSafety(posMeas, path.row(i), R, length);
+
+        if (isSafe == false) {
+            std::cout << "Failed to meet safety criteria!" << std::endl;
+            break;
+        }
+
         // Create desired states
         Eigen::Vector<double, 3> xDesired{path.row(i)(0), 0.0, 0.0}; /// path position, no velocity, no acceleration
         Eigen::Vector<double, 3> yDesired{path.row(i)(1), 0.0, 0.0}; /// path position, no velocity, no acceleration
@@ -86,11 +112,14 @@ int main() {
         controlAccel(1) = controllerY.run(yMeas, yDesired);
         controlAccel(2) = controllerZ.run(zMeas, zDesired);
 
+        // Update states/Propagate sim
         sim.updateStates(controlAccel);
 
         time += dt;
 
         std::cout << "Sim Time: " << time << std::endl;
+        std::cout << "Is Vehicle Safe: " << isSafe << std::endl;
+        std::cout << "Current Maximum Deviation Distance: " << deviationDistance + length << std::endl;
         std::cout << "Path Position: " << path.row(i) << std::endl;
         std::cout << "Sim Position: " << sim.getPosition().transpose() << std::endl;
         std::cout << "Sim Velocity: " << sim.getVelocity().transpose() << std::endl;
