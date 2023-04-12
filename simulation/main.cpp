@@ -14,10 +14,10 @@ using namespace std::chrono_literals; /// ns, us, ms, s, h, etc.
 std::tuple<bool, double> checkSafety(const Eigen::Vector<double, 3>& vehiclePos,
                                      const Eigen::Vector<double, 3>& path,
                                      double safetyRadius,
-                                     double vehicleRadius)
+                                     double vehicleLength)
 {
     const double error = (vehiclePos - path).norm();
-    const bool result = safetyRadius > error + vehicleRadius;
+    const bool result = safetyRadius > error + vehicleLength / 2.0; /// Vehicle radius is half of the length
 
     return std::make_tuple(result, error);
 }
@@ -119,7 +119,7 @@ int main() {
 
         std::cout << "Sim Time: " << time << std::endl;
         std::cout << "Is Vehicle Safe: " << isSafe << std::endl;
-        std::cout << "Current Maximum Deviation Distance: " << deviationDistance + length << std::endl;
+        std::cout << "Current Maximum Deviation Distance: " << deviationDistance + length / 2.0 << std::endl;
         std::cout << "Path Position: " << path.row(i) << std::endl;
         std::cout << "Sim Position: " << sim.getPosition().transpose() << std::endl;
         std::cout << "Sim Velocity: " << sim.getVelocity().transpose() << std::endl;
