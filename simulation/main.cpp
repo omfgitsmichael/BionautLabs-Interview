@@ -48,10 +48,10 @@ int main() {
     Eigen::Vector<double, 3> orientation{roll, pitch, yaw};
 
     // Bot params
-    double length = 0.005; /// Assuming bot is sphere with length L for now
+    const double length = 0.005; /// Assuming bot is sphere with length for now
 
     // Safety Radius
-    double R = 0.01;
+    const double R = 0.01;
 
     // Create controllers
     control::Controller controllerX;
@@ -74,10 +74,6 @@ int main() {
 
     // Control acceleration vector
     Eigen::Vector<double, 3> controlAccel{0.0, 0.0, 0.0};
-
-    // Misc variables
-    Eigen::Vector<double, 3> vehiclePos = pos;
-    Eigen::Vector<double, 3> vehiclePosPrev = pos;
 
     sim::Sim sim(dt, pos, vel, accel);
 
@@ -121,10 +117,10 @@ int main() {
         std::cout << "Is Vehicle Safe: " << isSafe << std::endl;
         std::cout << "Current Maximum Deviation Distance: " << deviationDistance + length / 2.0 << std::endl;
         std::cout << "Path Position: " << path.row(i) << std::endl;
-        std::cout << "Sim Position: " << sim.getPosition().transpose() << std::endl;
-        std::cout << "Sim Velocity: " << sim.getVelocity().transpose() << std::endl;
-        std::cout << "Sim Acceleration: " << sim.getAcceleration().transpose() << std::endl;
-        std::cout << "Control: " << controlAccel.transpose() << std::endl;
+        std::cout << "Vehicle Position: " << sim.getPosition().transpose() << std::endl;
+        std::cout << "Vehicle Velocity: " << sim.getVelocity().transpose() << std::endl;
+        std::cout << "Vehicle Acceleration: " << sim.getAcceleration().transpose() << std::endl;
+        std::cout << "Control Acceleration Input: " << controlAccel.transpose() << std::endl;
 
         sleep_for(10ms);
     }
