@@ -7,30 +7,31 @@ namespace sim {
 
 class Sim {
   public:
-    Sim(double dt,
-        const Eigen::Vector<double, 3>& position,
-        const Eigen::Vector<double, 3>& velocity,
-        const Eigen::Vector<double, 3>& accel):
-        dt_(dt),
-        position_(position),
-        velocity_(velocity),
-        acceleration_(accel)
+    // Mass-spring dampener system parameters
+    struct Parameters {
+      double dt = 0.0;
+      double m = 0.0;
+      double k = 0.0;
+      double b = 0.0;
+    };
+
+    Sim(Parameters params, const Eigen::Vector<double, 2>& x):
+        params_(params),
+        x_(x)
     {
+      // Ensure the mass is greater than zero
+      assert(params_.m > 0.0);
     }
 
-    void updateStates(const Eigen::Vector<double, 3>& control);
+    void updateStates(double control);
 
-    Eigen::Vector<double, 3> getPosition() const;
+    double getPosition() const;
 
-    Eigen::Vector<double, 3> getVelocity() const;
-
-    Eigen::Vector<double, 3> getAcceleration() const;
+    double getVelocity() const;
 
   private:
-    double dt_ = 0.0;
-    Eigen::Vector<double, 3> position_ = Eigen::Vector<double, 3>::Zero();
-    Eigen::Vector<double, 3> velocity_ = Eigen::Vector<double, 3>::Zero();
-    Eigen::Vector<double, 3> acceleration_ = Eigen::Vector<double, 3>::Zero();
+    Parameters params_;
+    Eigen::Vector<double, 2> x_ = Eigen::Vector<double, 2>::Zero();
 };
 
 } // namespace sim

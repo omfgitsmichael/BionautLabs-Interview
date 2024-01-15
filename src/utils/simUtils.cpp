@@ -2,46 +2,28 @@
 
 namespace sim {
 
-void Sim::updateStates(const Eigen::Vector<double, 3>& controlAccel)
+void Sim::updateStates(double control)
 {
-    Eigen::Vector<double, 9> states = Eigen::Vector<double, 9>::Zero();
-    states.head(3) = position_;
-    states.segment(3, 3) = velocity_;
-    states.tail(3) = acceleration_ + controlAccel;
+    Eigen::Matrix<double, 2, 2> A = Eigen::Matrix<double, 2, 2>::Zero();
+    A(0, 1) = 1.0;
+    A(1, 0) = -params_.k / params_.m;
+    A(1, 1) = -params_.b / params_.m;
 
-    Eigen::Matrix<double, 9, 9> A = Eigen::Matrix<double, 9, 9>::Zero();
+    Eigen::Vector<double, 2> B = Eigen::Vector<double, 2>::Zero();
+    B(1) = 1.0 / params_.m;
 
-    Eigen::Matrix<double, 3, 3> identity = Eigen::Matrix<double, 3, 3>::Identity();
-    Eigen::Matrix<double, 3, 3> integrator = identity * dt_;
-    Eigen::Matrix<double, 3, 3> doubleIntegrator = 0.5 * identity * dt_ * dt_;
-
-    A.block<3, 3>(0, 0) = identity;
-    A.block<3, 3>(0, 3) = integrator;
-    A.block<3, 3>(0, 6) = doubleIntegrator;
-    A.block<3, 3>(3, 3) = identity;
-    A.block<3, 3>(3, 6) = integrator;
-    A.block<3, 3>(6, 6) = identity;
-
-    states = A * states;
-
-    position_ = states.head(3);
-    velocity_ = states.segment(4, 3);
-    acceleration_ = states.tail(3);
+    Eigen::Vector<double, 2> xDot = A * x_ + B * control;
+    x_ = x_ + xDot * params_.dt;
 }
 
-Eigen::Vector<double, 3> Sim::getPosition() const
+double Sim::getPosition() const
 {
-    return position_;
+    return x_(0);
 }
 
-Eigen::Vector<double, 3> Sim::getVelocity() const
+double Sim::getVelocity() const
 {
-    return velocity_;
-}
-
-Eigen::Vector<double, 3> Sim::getAcceleration() const
-{
-    return acceleration_;
+    return x_(1);
 }
 
 } // namespace sim
